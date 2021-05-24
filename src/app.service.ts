@@ -38,4 +38,28 @@ export class AppService {
       await queryRunner.release();
     }
   }
+
+  async getUser(userId?: number) {
+    // get a connection and create a new query runner
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
+    let query: string;
+    if (typeof userId !== 'undefined') {
+      query = `EXECUTE AS USER = 'AppUser';  
+      EXEC sp_set_session_context @key=N'UserId', @value=${userId};  
+      SELECT * FROM Sales;  `;
+    } else {
+      query = ` SELECT * FROM Sales;  `;
+    }
+    try {
+      const result = await queryRunner.manager.query(query);
+      return result;
+    } finally {
+      await queryRunner.manager.query(
+        `EXEC sys.sp_set_session_context 'UserId', null`,
+      );
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+  }
 }

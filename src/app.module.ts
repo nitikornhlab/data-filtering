@@ -10,7 +10,6 @@ import { AppService } from './app.service';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        console.log('env', configService);
         return {
           type: 'mssql',
           host: 'localhost',
@@ -19,6 +18,7 @@ import { AppService } from './app.service';
           password: configService.get('DATABASE_PASSWORD'),
           database: 'master',
           synchronize: false,
+          options: { enableArithAbort: false },
           extra: {
             trustServerCertificate: true,
           },
