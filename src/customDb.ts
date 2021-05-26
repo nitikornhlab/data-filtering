@@ -23,7 +23,6 @@ export const dbConditionFilter = [
     filterWithColumn: 'Department',
     compareWith: 'department',
   },
-  ,
   {
     role: 'USER',
     api: '/join/:id',

@@ -19,8 +19,29 @@ export class AppService {
     };
     const queryWithFilter = this.getFilterData(query, userContext, api);
     return {
-      result: await this.connection.query(queryWithFilter),
+      originalResult: await this.connection.query(query),
       originalQuery: query,
+      filteredResult: await this.connection.query(queryWithFilter),
+      filteredQuery: queryWithFilter,
+    };
+  }
+
+  async getCustomSalesWithOrder(api: string, id): Promise<any> {
+    const query = `SELECT * FROM CustomSales 
+    ORDER BY OrderId 
+    OFFSET 1 ROWS
+    FETCH NEXT 10 ROWS ONLY`;
+    const userContext: userContext = {
+      orgId: 'org1',
+      roles: ['USER', 'ADMIN'],
+      userId: id,
+      department: 'D1',
+    };
+    const queryWithFilter = this.getFilterData(query, userContext, api);
+    return {
+      originalResult: await this.connection.query(query),
+      originalQuery: query,
+      filteredResult: await this.connection.query(queryWithFilter),
       filteredQuery: queryWithFilter,
     };
   }
@@ -39,8 +60,9 @@ export class AppService {
     const queryWithFilter = this.getFilterData(query, userContext, api);
 
     return {
-      result: await this.connection.query(queryWithFilter),
+      originalResult: await this.connection.query(query),
       originalQuery: query,
+      filterdResult: await this.connection.query(queryWithFilter),
       filteredQuery: queryWithFilter,
     };
   }
@@ -50,12 +72,23 @@ export class AppService {
     userContext: userContext,
     api: string,
   ): any {
+    let rawSql: string;
+    let orderAndLimitSql = '';
     if (typeof query === 'string') {
-      query = this.addFilterString(query, userContext, api);
+      rawSql = query;
     } else {
-      query = this.addFilterString(query.getSql(), userContext, api);
+      rawSql = query.getSql();
     }
-    return query;
+    let querySql = rawSql;
+
+    const findOrderBy = rawSql.lastIndexOf('ORDER BY');
+    if (findOrderBy > 0) {
+      querySql = rawSql.substring(0, findOrderBy);
+      orderAndLimitSql = rawSql.substring(findOrderBy);
+    }
+
+    querySql = this.addFilterString(querySql, userContext, api);
+    return querySql + ' ' + orderAndLimitSql;
   }
 
   addFilterString(
@@ -63,7 +96,6 @@ export class AppService {
     userContext: userContext,
     api: string,
   ): string {
-    console.log(query, userContext, api);
     const queryAliasTable = 'query';
     let queryWithFilterBuilder = this.connection
       .createQueryBuilder()

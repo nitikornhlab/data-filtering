@@ -19,4 +19,9 @@ export class AppController {
   getJoinSales(@Param('id') id) {
     return this.appService.getJoinSales('/join/:id', id);
   }
+
+  @Get('/orderBy/:id')
+  getCustomSalesWithOrder(@Param('id') id): Promise<string> {
+    return this.appService.getCustomSalesWithOrder('/user/:id', id);
+  }
 }
