@@ -10,9 +10,19 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('/user/querybuilder/:id')
+  getCustomSalesByQueryBuilder(@Param('id') id): Promise<string> {
+    return this.appService.getCustomSalesWithQueryBuilder('/user/:id', id);
+  }
+
   @Get('/user/:id')
   getCustomSales(@Param('id') id): Promise<string> {
     return this.appService.getCustomSalesNormalRaw('/user/:id', id);
+  }
+
+  @Get('/join/querybuilder/:id')
+  getJoinSalesByQueryBuilder(@Param('id') id) {
+    return this.appService.getJoinSalesQueryBuilder('/join/:id', id);
   }
 
   @Get('/join/:id')

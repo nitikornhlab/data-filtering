@@ -1,12 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { Connection, QueryBuilder } from 'typeorm';
 import { dbConditionFilter } from './customDb';
+import { Lk_Salesman_Product } from './entity/Sample.Lk_Salesman_Product.entity';
 
 @Injectable()
 export class AppService {
   constructor(private connection: Connection) {}
   getHello(): string {
     return 'Hello World!';
+  }
+
+  async getCustomSalesWithQueryBuilder(api: string, id): Promise<any> {
+    let query = this.connection.createQueryBuilder();
+    query = query.select('*').from('CustomSales', null);
+    console.log('querybuilder content', query.getSql());
+    const userContext: userContext = {
+      orgId: 'org1',
+      roles: ['USER', 'ADMIN'],
+      userId: id,
+      department: 'D1',
+    };
+    const queryWithFilter = this.getFilterData(query, userContext, api);
+
+    return {
+      originalResult: await this.connection.query(query.getSql()),
+      originalQuery: query.getSql(),
+      filteredResult: await this.connection.query(queryWithFilter),
+      filteredQuery: queryWithFilter,
+    };
   }
 
   async getCustomSalesNormalRaw(api: string, id): Promise<any> {
@@ -46,6 +67,30 @@ export class AppService {
     };
   }
 
+  async getJoinSalesQueryBuilder(api: string, id): Promise<any> {
+    let query = this.connection.createQueryBuilder();
+    query = query
+      .select('s.Product, f.OrderId, s.Salesrep, f.Qty')
+      .from(`Sample.Sales`, 'f')
+      .innerJoin(Lk_Salesman_Product, 's', 's.product = f.Product');
+    // On query builder join section can only use by entity when need to specific schema(schema.table) ex Sample.Lk_Salesman_Product
+    const userContext: userContext = {
+      orgId: 'org1',
+      roles: ['USER'],
+      userId: id,
+      department: 'D1',
+    };
+    console.log('query ', query.getSql());
+    const queryWithFilter = this.getFilterData(query, userContext, api);
+
+    return {
+      originalResult: await this.connection.query(query.getSql()),
+      originalQuery: query.getSql(),
+      filterdResult: await this.connection.query(queryWithFilter),
+      filteredQuery: queryWithFilter,
+    };
+  }
+
   async getJoinSales(api: string, id): Promise<any> {
     const query = `
     SELECT s.Product, f.OrderId, s.Salesrep, f.Qty  FROM Sample.Sales f
@@ -68,7 +113,7 @@ export class AppService {
   }
 
   getFilterData(
-    query: string | QueryBuilder<string>,
+    query: string | QueryBuilder<any>,
     userContext: userContext,
     api: string,
   ): any {
@@ -148,6 +193,8 @@ export class AppService {
         );
       }
     }
+
+    console.log('before return query ', queryWithFilterBuilder.getSql());
     return queryWithFilterBuilder.getSql();
   }
 }
