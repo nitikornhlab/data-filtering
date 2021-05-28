@@ -30,6 +30,14 @@ export class AppController {
     return this.appService.getJoinSales('/join/:id', id);
   }
 
+  @Get('/orderBy/querybuilder/:id')
+  getCustomSalesWithOrderAndQueryBuilder(@Param('id') id): Promise<string> {
+    return this.appService.getCustomSalesWithOrderAndQueryBuilder(
+      '/user/:id',
+      id,
+    );
+  }
+
   @Get('/orderBy/:id')
   getCustomSalesWithOrder(@Param('id') id): Promise<string> {
     return this.appService.getCustomSalesWithOrder('/user/:id', id);

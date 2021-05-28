@@ -67,6 +67,33 @@ export class AppService {
     };
   }
 
+  async getCustomSalesWithOrderAndQueryBuilder(api: string, id): Promise<any> {
+    let query = this.connection.createQueryBuilder();
+    query = query
+      .select('*')
+      .from('CustomSales', null)
+      .orderBy('OrderId')
+      .offset(1)
+      .limit(10);
+    // const query = `SELECT * FROM CustomSales
+    // ORDER BY OrderId
+    // OFFSET 1 ROWS
+    // FETCH NEXT 10 ROWS ONLY`;
+    const userContext: userContext = {
+      orgId: 'org1',
+      roles: ['USER', 'ADMIN'],
+      userId: id,
+      department: 'D1',
+    };
+    const queryWithFilter = this.getFilterData(query, userContext, api);
+    return {
+      originalResult: await this.connection.query(query.getSql()),
+      originalQuery: query.getSql(),
+      filteredResult: await this.connection.query(queryWithFilter),
+      filteredQuery: queryWithFilter,
+    };
+  }
+
   async getJoinSalesQueryBuilder(api: string, id): Promise<any> {
     let query = this.connection.createQueryBuilder();
     query = query
