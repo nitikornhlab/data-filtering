@@ -8,11 +8,12 @@ export class AppService {
     // get a connection and create a new query runner
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
-
+    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
     try {
       const result = await queryRunner.manager.query(
         `EXEC sys.sp_set_session_context @key = N'language', @value = ${Math.random()};`,
       );
+      await delay(5000);
       return result;
     } finally {
       await queryRunner.manager.query(
